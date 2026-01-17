@@ -1,0 +1,21 @@
+# Backend Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Database
+aiosqlite>=0.19.0
+
+# AI/ML - Hugging Face (FREE)
+transformers>=4.35.0
+torch>=2.0.0
+sentencepiece>=0.1.99
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+httpx>=0.25.0
+
+# Development
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
