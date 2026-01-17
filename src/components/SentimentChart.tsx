@@ -17,12 +17,12 @@ interface SentimentChartProps {
   className?: string;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length && payload[0]?.payload?.timestamp) {
     return (
       <div className="rounded-lg border border-border bg-card/95 backdrop-blur-sm p-3 shadow-xl">
         <p className="text-sm font-medium text-foreground mb-2">
-          {format(new Date(label), 'MMM d, h:mm a')}
+          {format(new Date(payload[0].payload.timestamp), 'MMM d, h:mm a')}
         </p>
         <div className="space-y-1">
           {payload.map((entry: any, index: number) => (
