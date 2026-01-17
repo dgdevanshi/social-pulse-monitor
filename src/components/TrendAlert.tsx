@@ -7,6 +7,8 @@ interface TrendAlertProps {
   isVisible: boolean;
   negativePercentage: number;
   onDismiss: () => void;
+  onViewNegativePosts: () => void;
+  onCreateResponse: () => void;
   className?: string;
 }
 
@@ -14,6 +16,8 @@ export function TrendAlert({
   isVisible,
   negativePercentage,
   onDismiss,
+  onViewNegativePosts,
+  onCreateResponse,
   className,
 }: TrendAlertProps) {
   return (
@@ -54,6 +58,7 @@ export function TrendAlert({
                   size="sm"
                   variant="destructive"
                   className="text-xs"
+                  onClick={onViewNegativePosts}
                 >
                   View Negative Posts
                 </Button>
@@ -61,6 +66,7 @@ export function TrendAlert({
                   size="sm"
                   variant="outline"
                   className="text-xs border-sentiment-negative/30 hover:bg-sentiment-negative/10"
+                  onClick={onCreateResponse}
                 >
                   Create Response
                 </Button>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Header } from '@/components/Header';
 import { StatCard } from '@/components/StatCard';
 import { SentimentChart } from '@/components/SentimentChart';
@@ -6,8 +6,9 @@ import { SentimentDonut } from '@/components/SentimentDonut';
 import { PostFeed } from '@/components/PostFeed';
 import { KeywordManager } from '@/components/KeywordManager';
 import { TrendAlert } from '@/components/TrendAlert';
+import { ResponseDialog } from '@/components/ResponseDialog';
 import { generateMockPosts, generateTrendData, defaultKeywords } from '@/data/mockData';
-import { SocialPost, TrackedKeyword, SentimentStats } from '@/types/social';
+import { SocialPost, TrackedKeyword, SentimentStats, SentimentType } from '@/types/social';
 import { Activity, TrendingUp, TrendingDown, Minus, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -16,6 +17,9 @@ const Index = () => {
   const [trendData, setTrendData] = useState(generateTrendData(24));
   const [keywords, setKeywords] = useState<TrackedKeyword[]>(defaultKeywords);
   const [showAlert, setShowAlert] = useState(true);
+  const [sentimentFilter, setSentimentFilter] = useState<SentimentType | 'all'>('all');
+  const [showResponseDialog, setShowResponseDialog] = useState(false);
+  const postFeedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Initial load
@@ -40,6 +44,16 @@ const Index = () => {
   }, [posts]);
 
   const negativePercentage = stats.total > 0 ? (stats.negative / stats.total) * 100 : 0;
+
+  const filteredPosts = useMemo(() => {
+    if (sentimentFilter === 'all') return posts;
+    return posts.filter((p) => p.sentiment === sentimentFilter);
+  }, [posts, sentimentFilter]);
+
+  const handleViewNegativePosts = () => {
+    setSentimentFilter('negative');
+    postFeedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const handleAddKeyword = (keyword: string) => {
     const newKeyword: TrackedKeyword = {
@@ -71,7 +85,15 @@ const Index = () => {
           isVisible={showAlert && negativePercentage > 20}
           negativePercentage={negativePercentage}
           onDismiss={() => setShowAlert(false)}
+          onViewNegativePosts={handleViewNegativePosts}
+          onCreateResponse={() => setShowResponseDialog(true)}
           className="mb-6"
+        />
+        
+        {/* Response Dialog */}
+        <ResponseDialog
+          isOpen={showResponseDialog}
+          onClose={() => setShowResponseDialog(false)}
         />
 
         {/* Stats Grid */}
@@ -120,8 +142,13 @@ const Index = () => {
         </div>
 
         {/* Posts and Keywords */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <PostFeed posts={posts.slice(0, 20)} className="lg:col-span-2" />
+        <div ref={postFeedRef} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <PostFeed
+            posts={filteredPosts.slice(0, 20)}
+            currentFilter={sentimentFilter}
+            onFilterChange={setSentimentFilter}
+            className="lg:col-span-2"
+          />
           <div className="space-y-6">
             <KeywordManager
               keywords={keywords}
