@@ -1,4 +1,4 @@
-import { SocialPost } from '@/types/social';
+import { SocialPost, SentimentType } from '@/types/social';
 import { SentimentBadge } from './SentimentBadge';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 
 interface PostFeedProps {
   posts: SocialPost[];
+  currentFilter: SentimentType | 'all';
+  onFilterChange: (filter: SentimentType | 'all') => void;
   className?: string;
 }
 
@@ -26,7 +28,14 @@ const sourceColors: Record<string, string> = {
   linkedin: 'bg-blue-600/10 text-blue-500',
 };
 
-export function PostFeed({ posts, className }: PostFeedProps) {
+const filterOptions: { value: SentimentType | 'all'; label: string; color: string }[] = [
+  { value: 'all', label: 'All', color: 'bg-muted text-foreground' },
+  { value: 'positive', label: 'Positive', color: 'bg-sentiment-positive/10 text-sentiment-positive' },
+  { value: 'neutral', label: 'Neutral', color: 'bg-sentiment-neutral/10 text-sentiment-neutral' },
+  { value: 'negative', label: 'Negative', color: 'bg-sentiment-negative/10 text-sentiment-negative' },
+];
+
+export function PostFeed({ posts, currentFilter, onFilterChange, className }: PostFeedProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -35,10 +44,30 @@ export function PostFeed({ posts, className }: PostFeedProps) {
       className={cn('rounded-xl border border-border bg-card', className)}
     >
       <div className="p-6 border-b border-border">
-        <h3 className="text-lg font-semibold">Recent Posts</h3>
-        <p className="text-sm text-muted-foreground">
-          Latest social mentions with AI sentiment analysis
-        </p>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-lg font-semibold">Recent Posts</h3>
+            <p className="text-sm text-muted-foreground">
+              Latest social mentions with AI sentiment analysis
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {filterOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => onFilterChange(option.value)}
+              className={cn(
+                'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                currentFilter === option.value
+                  ? option.color + ' ring-2 ring-offset-2 ring-offset-card ring-primary/50'
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="divide-y divide-border max-h-[600px] overflow-y-auto">
         {posts.map((post, index) => (
