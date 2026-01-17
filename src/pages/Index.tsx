@@ -9,8 +9,10 @@ import { TrendAlert } from '@/components/TrendAlert';
 import { ResponseDialog } from '@/components/ResponseDialog';
 import { generateMockPosts, generateTrendData, defaultKeywords } from '@/data/mockData';
 import { SocialPost, TrackedKeyword, SentimentStats, SentimentType } from '@/types/social';
-import { Activity, TrendingUp, TrendingDown, Minus, Zap } from 'lucide-react';
+import { Activity, TrendingUp, TrendingDown, Minus, Zap, Brain } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useSentimentAnalysis } from '@/hooks/useSentimentAnalysis';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [posts, setPosts] = useState<SocialPost[]>([]);
@@ -20,21 +22,34 @@ const Index = () => {
   const [sentimentFilter, setSentimentFilter] = useState<SentimentType | 'all'>('all');
   const [showResponseDialog, setShowResponseDialog] = useState(false);
   const postFeedRef = useRef<HTMLDivElement>(null);
+  
+  const { analyzePosts, isAnalyzing } = useSentimentAnalysis();
 
   useEffect(() => {
     // Initial load
     setPosts(generateMockPosts(50));
-
-    // Simulate real-time updates
-    const interval = setInterval(() => {
-      const newPost = generateMockPosts(1)[0];
-      newPost.id = `post-${Date.now()}`;
-      newPost.timestamp = new Date();
-      setPosts((prev) => [newPost, ...prev.slice(0, 49)]);
-    }, 8000);
-
-    return () => clearInterval(interval);
   }, []);
+
+  const handleAnalyzeWithAI = async () => {
+    const postsToAnalyze = posts.map((p) => ({ id: p.id, content: p.content }));
+    const results = await analyzePosts(postsToAnalyze);
+    
+    if (results) {
+      setPosts((prev) =>
+        prev.map((post) => {
+          const result = results[post.id];
+          if (result) {
+            return {
+              ...post,
+              sentiment: result.sentiment,
+              confidenceScore: result.confidenceScore,
+            };
+          }
+          return post;
+        })
+      );
+    }
+  };
 
   const stats: SentimentStats = useMemo(() => {
     const positive = posts.filter((p) => p.sentiment === 'positive').length;
@@ -97,6 +112,17 @@ const Index = () => {
         />
 
         {/* Stats Grid */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Sentiment Overview</h2>
+          <Button
+            onClick={handleAnalyzeWithAI}
+            disabled={isAnalyzing}
+            className="gap-2"
+          >
+            <Brain className="w-4 h-4" />
+            {isAnalyzing ? 'Analyzing...' : 'Analyze with AI'}
+          </Button>
+        </div>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
